@@ -6,22 +6,23 @@ import android.text.TextPaint;
 import android.text.style.ClickableSpan;
 import android.view.View;
 import android.widget.Toast;
-import razerdp.friendcircle.api.data.model.PraiseInfo;
+import razerdp.friendcircle.api.data.model.UserInfo;
+import razerdp.friendcircle.utils.UIHelper;
 
 /**
  * Created by 大灯泡 on 2016/2/21.
  * 点击事件
  */
-public class ClickEvent extends ClickableSpan {
+public class PraiseClick extends ClickableSpan {
     private static final int DEFAULT_COLOR = 0xff517fae;
     private int color;
     private Context mContext;
     private int textSize;
-    private PraiseInfo mPraiseInfo;
+    private UserInfo mPraiseInfo;
 
-    private ClickEvent() {}
+    private PraiseClick() {}
 
-    private ClickEvent(Builder builder) {
+    private PraiseClick(Builder builder) {
         mContext = builder.mContext;
         mPraiseInfo = builder.mPraiseInfo;
         this.textSize = builder.textSize;
@@ -30,7 +31,8 @@ public class ClickEvent extends ClickableSpan {
 
     @Override
     public void onClick(View widget) {
-        Toast.makeText(mContext, "当前用户名是： " + mPraiseInfo.userNick + "   它的ID是： " + mPraiseInfo.userId,
+        if (mPraiseInfo!=null)
+        Toast.makeText(mContext, "当前用户名是： " + mPraiseInfo.nick + "   它的ID是： " + mPraiseInfo.userId,
                 Toast.LENGTH_SHORT).show();
     }
 
@@ -52,15 +54,15 @@ public class ClickEvent extends ClickableSpan {
         private int color;
         private Context mContext;
         private int textSize=16;
-        private PraiseInfo mPraiseInfo;
+        private UserInfo mPraiseInfo;
 
-        public Builder(Context context, @NonNull PraiseInfo info) {
+        public Builder(Context context, @NonNull UserInfo info) {
             mContext = context;
             mPraiseInfo=info;
         }
 
         public Builder setTextSize(int textSize) {
-            this.textSize = textSize;
+            this.textSize = UIHelper.sp2px(mContext,textSize);
             return this;
         }
 
@@ -69,8 +71,8 @@ public class ClickEvent extends ClickableSpan {
             return this;
         }
 
-        public ClickEvent build() {
-            return new ClickEvent(this);
+        public PraiseClick build() {
+            return new PraiseClick(this);
         }
     }
 }

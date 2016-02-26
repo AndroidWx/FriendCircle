@@ -1,34 +1,52 @@
 package razerdp.friendcircle;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import java.util.ArrayList;
-import java.util.List;
-import razerdp.friendcircle.api.data.model.PraiseInfo;
-import razerdp.friendcircle.widget.praisewidget.PraiseWidget;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ImageView;
+import razerdp.friendcircle.api.network.base.BaseResponse;
+import razerdp.friendcircle.api.request.FriendCircleRequest;
+import razerdp.friendcircle.ui.FriendCircleBaseActivity;
+import razerdp.friendcircle.utils.FriendCircleAdapterUtil;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends FriendCircleBaseActivity {
+    private FriendCircleRequest mCircleRequest;
 
-    private PraiseWidget praise;
-    private List<PraiseInfo> mPraiseInfos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.test_activity);
-        initView();
+        setContentView(R.layout.activity_main);
+        View header= LayoutInflater.from(this).inflate(R.layout.item_header,null,false);
+        bindListView(R.id.listview,header, FriendCircleAdapterUtil.getAdapter(this,mMomentsInfos));
+        initReq();
+        //mListView.manualRefresh();
     }
 
-    private void initView() {
-        praise = (PraiseWidget) findViewById(R.id.praise);
-        mPraiseInfos=new ArrayList<>();
-        for (int i=0;i<50;i++){
-            PraiseInfo info=new PraiseInfo();
-            info.userNick="用户"+i;
-            info.userId=i;
-            mPraiseInfos.add(info);
-        }
-        praise.setDatas(mPraiseInfos);
+    private void initReq() {
+        mCircleRequest=new FriendCircleRequest(1001,0,8);
+        mCircleRequest.setOnResponseListener(this);
+    }
+
+    @Override
+    public ImageView bindRefreshIcon() {
+        return (ImageView) findViewById(R.id.rotate_icon);
+    }
+
+    @Override
+    public void onPullDownRefresh() {
+        mCircleRequest.setStart(0);
+        mCircleRequest.execute();
+    }
+
+    @Override
+    public void onLoadMore() {
+        mCircleRequest.execute();
+    }
+
+    @Override
+    public void onSuccess(BaseResponse response) {
+        super.onSuccess(response);
     }
 }
 
