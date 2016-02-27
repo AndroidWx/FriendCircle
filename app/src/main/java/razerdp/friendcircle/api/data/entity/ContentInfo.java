@@ -1,4 +1,4 @@
-package razerdp.friendcircle.api.data.model;
+package razerdp.friendcircle.api.data.entity;
 
 import java.io.Serializable;
 import java.util.List;
@@ -11,4 +11,5 @@ public class ContentInfo implements Serializable {
     private String webUrl;
     private String webTitle;
     private long dynamicid;
+    private String webImg;
 }
