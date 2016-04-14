@@ -1,5 +1,51 @@
 # 更新日志
 
+##2016-04-14
+朋友圈图片浏览模块完成</br>
+代码解析地址：</br>
+ </br>
+图片预览：</br>
+![](https://github.com/razerdp/FriendCircle/blob/main-dev/img/2016-04-14_friend_circle_photo_gallery.gif)
+
+***
+
+##2016-04-13
+图片点击前景色</br>
+代码解析地址：</br>
+http://www.jianshu.com/p/8984efce40ae </br>
+图片预览：</br>
+![](https://github.com/razerdp/FriendCircle/blob/main-dev/img/2016-04-13_click_forceground_iv.gif)
+
+***
+
+##2016-04-04
+评论模块对齐完成（针对回复评论）</br>
+代码解析地址：</br>
+http://www.jianshu.com/p/513e2eccd7a8 </br>
+图片预览：</br>
+![](https://github.com/razerdp/FriendCircle/blob/main-dev/img/2016-04-04_comment_align_input_box.gif)
+
+***
+
+##2016-03-26
+修复点赞列表展示的背景selector</br>
+代码解析地址：</br>
+http://www.jianshu.com/p/69b9a6a83373 </br>
+
+***
+##2016-03-25
+评论模块对齐完成（针对动态评论）</br>
+代码解析地址：</br>
+http://www.jianshu.com/p/8d24f9b7a63a </br>
+图片预览：</br>
+![](https://github.com/razerdp/FriendCircle/blob/main-dev/img/2016-03-25_show_input_box.gif)
+
+***
+
+##2016-03-18
+修复加载更多时请求成功后没有重置状态的问题
+
+***
 ##2016-03-17
 更改为mvp架构
 
