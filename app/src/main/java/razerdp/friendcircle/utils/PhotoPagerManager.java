@@ -7,17 +7,19 @@ import android.content.Context;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.support.annotation.NonNull;
+import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import java.util.ArrayList;
 import razerdp.friendcircle.app.adapter.PhotoBoswerPagerAdapter;
+import razerdp.friendcircle.widget.DotIndicator;
 import razerdp.friendcircle.widget.HackyViewPager;
 
 /**
  * Created by 大灯泡 on 2016/4/12.
  * 相册展示的管理类
  */
-public class PhotoPagerManager implements PhotoBoswerPagerAdapter.OnPhotoViewClickListener {
+public class PhotoPagerManager implements PhotoBoswerPagerAdapter.OnPhotoViewClickListener,ViewPager.OnPageChangeListener {
 
     private Context mContext;
     private PhotoBoswerPagerAdapter adapter;
@@ -26,15 +28,20 @@ public class PhotoPagerManager implements PhotoBoswerPagerAdapter.OnPhotoViewCli
     private Rect finalBounds;
     private Point globalOffset;
 
+    private DotIndicator mDotIndicator;
+
     private View container;
 
-    private PhotoPagerManager(Context context, HackyViewPager pager, View container) {
+    private PhotoPagerManager(Context context, HackyViewPager pager, View container, DotIndicator dotIndicator) {
         if (container != null) {
             finalBounds = new Rect();
             globalOffset = new Point();
             this.mContext = context;
             this.container = container;
             this.pager = pager;
+            this.mDotIndicator=dotIndicator;
+
+            this.pager.addOnPageChangeListener(this);
             adapter = new PhotoBoswerPagerAdapter(context);
             adapter.setOnPhotoViewClickListener(this);
         }
@@ -43,14 +50,16 @@ public class PhotoPagerManager implements PhotoBoswerPagerAdapter.OnPhotoViewCli
         }
     }
 
-    public static PhotoPagerManager create(Context context, HackyViewPager pager, View container) {
-        return new PhotoPagerManager(context, pager, container);
+    public static PhotoPagerManager create(Context context, HackyViewPager pager, View container,DotIndicator dotIndicator) {
+        return new PhotoPagerManager(context, pager, container,dotIndicator);
     }
 
     public void showPhoto(
             @NonNull ArrayList<String> photoAddress, @NonNull ArrayList<Rect> originViewBounds, int curSelectedPos) {
         adapter.resetDatas(photoAddress, originViewBounds);
         pager.setAdapter(adapter);
+        mDotIndicator.setDotViewNum(photoAddress.size());
+        mDotIndicator.setCurrentSelection(curSelectedPos);
         pager.setCurrentItem(curSelectedPos);
         pager.setLocked(photoAddress.size() == 1);
         container.getGlobalVisibleRect(finalBounds, globalOffset);
@@ -71,14 +80,13 @@ public class PhotoPagerManager implements PhotoBoswerPagerAdapter.OnPhotoViewCli
         pager.setPivotY(0);
 
         container.setVisibility(View.VISIBLE);
-        container.setAlpha(1.0f);
 
         final AnimatorSet set = new AnimatorSet();
         set.play(ObjectAnimator.ofFloat(pager, View.X, startBounds.left, finalBounds.left))
            .with(ObjectAnimator.ofFloat(pager, View.Y, startBounds.top, finalBounds.top))
            .with(ObjectAnimator.ofFloat(pager, View.SCALE_X, ratio, 1f))
            .with(ObjectAnimator.ofFloat(pager, View.SCALE_Y, ratio, 1f));
-        set.setDuration(300);
+        set.setDuration(400);
         set.setInterpolator(new DecelerateInterpolator());
         set.addListener(new Animator.AnimatorListener() {
             @Override
@@ -125,10 +133,9 @@ public class PhotoPagerManager implements PhotoBoswerPagerAdapter.OnPhotoViewCli
         set.play(ObjectAnimator.ofFloat(pager, View.X, originBound.left))
            .with(ObjectAnimator.ofFloat(pager, View.Y, originBound.top))
            .with(ObjectAnimator.ofFloat(pager, View.SCALE_X, 1f, ratio))
-           .with(ObjectAnimator.ofFloat(pager, View.SCALE_Y, 1f, ratio))
-           .with(ObjectAnimator.ofFloat(container, View.ALPHA, 1.0f, 0.0f));
+           .with(ObjectAnimator.ofFloat(pager, View.SCALE_Y, 1f, ratio));
 
-        set.setDuration(300);
+        set.setDuration(400);
         set.setInterpolator(new DecelerateInterpolator());
         set.addListener(new Animator.AnimatorListener() {
             @Override
@@ -187,5 +194,23 @@ public class PhotoPagerManager implements PhotoBoswerPagerAdapter.OnPhotoViewCli
         finalBounds = null;
         globalOffset = null;
         container = null;
+    }
+
+    //=============================================================pager change listener↓↓↓
+
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+    }
+
+    @Override
+    public void onPageSelected(int position) {
+        mDotIndicator.setCurrentSelection(position);
+
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int state) {
+
     }
 }
