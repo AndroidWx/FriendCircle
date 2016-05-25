@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import razerdp.friendcircle.R;
 import razerdp.friendcircle.app.config.CommonValue;
+import razerdp.friendcircle.app.config.LocalHostInfo;
 import razerdp.friendcircle.app.https.base.BaseResponse;
 import razerdp.friendcircle.app.https.request.FriendCircleRequest;
 import razerdp.friendcircle.app.https.request.RequestType;
@@ -34,9 +35,12 @@ import razerdp.friendcircle.utils.FriendCircleAdapterUtil;
 import razerdp.friendcircle.utils.InputMethodUtils;
 import razerdp.friendcircle.utils.PhotoPagerManager;
 import razerdp.friendcircle.utils.PreferenceUtils;
+import razerdp.friendcircle.utils.ToastUtils;
 import razerdp.friendcircle.utils.UIHelper;
+import razerdp.friendcircle.widget.DotIndicator;
 import razerdp.friendcircle.widget.HackyViewPager;
 import razerdp.friendcircle.widget.commentwidget.CommentWidget;
+import razerdp.friendcircle.widget.popup.DeleteCommentPopup;
 import razerdp.friendcircle.widget.ptrwidget.FriendCirclePtrListView;
 
 /**
@@ -66,6 +70,9 @@ public class FriendCircleDemoActivity extends FriendCircleBaseActivity
     //图片浏览的pager
     private PhotoPagerManager mPhotoPagerManager;
 
+    //删除评论的popup
+    private DeleteCommentPopup mDeleteCommentPopup;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -74,7 +81,23 @@ public class FriendCircleDemoActivity extends FriendCircleBaseActivity
         mPresenter = new DynamicPresenterImpl(this);
         initView();
         initReq();
-        //mListView.manualRefresh();
+        /**
+         * 页面进来自动刷新
+         * 【请注意】
+         * 因为百万哥的库有些问题，导致刷新icon可能不会收回
+         * 原因在PtrFrameLayout.performRefreshComplete()方法
+         * 当scroller正在运行同时又是autoRefresh时，会导致直接return，因此无法通知header执行uiCompelete
+         *
+         * 另外因为autoRefresh会导致自动scroller,代码详看autoRefresh()
+         *
+         * 解决方法有几个：
+         * 1 - 手动执行header的uiRefreshCompelete
+         * 2 - 反射设置autoRefresh
+         * 3 - 将百万哥的库down下来，自行修改
+         *
+         * 在下推荐第三个方法
+         */
+//        mListView.manualRefresh();
         UIHelper.observeSoftKeyboard(this, this);
     }
 
@@ -105,7 +128,20 @@ public class FriendCircleDemoActivity extends FriendCircleBaseActivity
         mSend.setOnClickListener(this);
 
         mPhotoPagerManager = PhotoPagerManager.create(this, (HackyViewPager) findViewById(R.id.photo_pager),
-                findViewById(R.id.photo_container));
+                findViewById(R.id.photo_container), (DotIndicator) findViewById(R.id.dot_indicator));
+
+        mDeleteCommentPopup=new DeleteCommentPopup(this);
+        mDeleteCommentPopup.setOnDeleteCommentClickListener(new DeleteCommentPopup.OnDeleteCommentClickListener() {
+            @Override
+            public void onDelClick(View v) {
+                if (mCommentWidget!=null) {
+                   CommentInfo info= mCommentWidget.getData();
+                    mPresenter.delComment(currentDynamicPos,mAdapter.getItem(currentDynamicPos).dynamicInfo
+                            .dynamicId,LocalHostInfo.INSTANCE.getHostId(),info.commentId);
+                    mDeleteCommentPopup.dismiss();
+                }
+            }
+        });
     }
 
     private void initReq() {
@@ -135,10 +171,32 @@ public class FriendCircleDemoActivity extends FriendCircleBaseActivity
             case R.id.btn_send:
                 // 发送
 
+                //由于肯定是个人操作，所以userid永远都是自己的id
+                long userid = LocalHostInfo.INSTANCE.getHostId();
+                //回复评论的创建者id
+                long replyId = 0;
+                //动态id
+                long dynamicId = 0;
+                //内容
+                String content;
+                if (mCommentWidget != null) {
+                    CommentInfo info = mCommentWidget.getData();
+                    replyId = info.userA.userId;
+                }
+                dynamicId = mAdapter.getItem(currentDynamicPos).dynamicInfo.dynamicId;
+                content = mInputBox.getText().toString().trim();
+                if (!TextUtils.isEmpty(content)) {
+                    mPresenter.addComment(currentDynamicPos, dynamicId, userid, replyId, content);
+                }
+                else {
+                    ToastUtils.ToastMessage(this, "回复内容不能为空哦");
+                }
+                mCommentWidget = null;
                 break;
             case R.id.btn_emoji:
                 // TODO: 2016/3/17 如果能力足够- -希望能完成
                 // emoji表情
+                ToastUtils.ToastMessage(this,"啦啦啦，羽翼君还没有这个精力做emoji哦");
 
                 break;
             default:
@@ -177,9 +235,7 @@ public class FriendCircleDemoActivity extends FriendCircleBaseActivity
     }
 
     @Override
-    public void refreshCommentData(int currentDynamicPos,
-                                   @RequestType.CommentRequestType int requestType,
-                                   @NonNull List<CommentInfo> commentList) {
+    public void refreshCommentData(int currentDynamicPos, @NonNull List<CommentInfo> commentList) {
         MomentsInfo info = mAdapter.getItem(currentDynamicPos);
         if (info != null) {
             if (info.commentList != null) {
@@ -191,12 +247,25 @@ public class FriendCircleDemoActivity extends FriendCircleBaseActivity
             }
         }
         mAdapter.notifyDataSetChanged();
+        if (mInputLayout.getVisibility() == View.VISIBLE) {
+            mInputBox.setText("");
+            mInputLayout.setVisibility(View.GONE);
+            InputMethodUtils.hideInputMethod(mInputBox);
+        }
     }
 
     @Override
     public void showInputBox(int currentDynamicPos, CommentWidget commentWidget, DynamicInfo dynamicInfo) {
         this.currentDynamicPos = currentDynamicPos;
         this.mCommentWidget = commentWidget;
+        // 如果点击评论，而评论的创建者为本人，则显示删除评论窗口
+        if (commentWidget!=null){
+            CommentInfo info=commentWidget.getData();
+            if (info.userA.userId==LocalHostInfo.INSTANCE.getHostId()){
+                mDeleteCommentPopup.showPopupWindow();
+                return;
+            }
+        }
         if (!TextUtils.isEmpty(draftStr)) {
             mInputBox.setText(draftStr);
             mInputBox.setSelection(draftStr.length());

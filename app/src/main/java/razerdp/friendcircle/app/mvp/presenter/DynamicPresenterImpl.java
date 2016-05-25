@@ -40,6 +40,15 @@ public class DynamicPresenterImpl implements DynamicResultCallBack {
         mModel.cancelPraise(curDynamicPos, LocalHostInfo.INSTANCE.getHostId(), dynamicId);
     }
 
+    // 添加评论
+    public void addComment(int currentDynamicPos, long dynamicid, long userid, long replyid, String content){
+        mModel.addComment(currentDynamicPos,dynamicid,userid,replyid,content);
+    }
+
+    //删除评论
+    public void delComment(int currentDynamicPos,long dynamicid,long userid,long commentid){
+        mModel.delComment(currentDynamicPos,dynamicid,userid,commentid);
+    }
     //=============================================================
     // 展示输入框
     public void showInputBox(int currentDynamicPos, CommentWidget commentWidget, DynamicInfo dynamicInfo){
@@ -65,6 +74,16 @@ public class DynamicPresenterImpl implements DynamicResultCallBack {
                 case RequestType.CANCEL_PRAISE:
                     List<UserInfo> praiseList2 = (List<UserInfo>) response.getDatas();
                     mView.refreshPraiseData(curDynamicPos, CommonValue.NOT_PRAISE, praiseList2);
+                    break;
+                case RequestType.ADD_COMMENT:
+                    List<CommentInfo> commentInfos= (List<CommentInfo>) response.getDatas();
+                    mView.refreshCommentData(curDynamicPos,commentInfos);
+                    break;
+                case RequestType.DEL_COMMENT:
+                    List<CommentInfo> commentInfos2= (List<CommentInfo>) response.getDatas();
+                    mView.refreshCommentData(curDynamicPos,commentInfos2);
+                    break;
+                default:
                     break;
             }
         }
