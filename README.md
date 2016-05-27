@@ -22,11 +22,11 @@ http://www.jianshu.com/p/17c51bd5ba70
 
 图片预览：
 
-![](https://github.com/razerdp/FriendCircle/blob/main-dev/img/2016-04-21_dot_indicator.gif)
+![](https://github.com/razerdp/FriendCirclePreview/blob/master/img/2016-04-21_dot_indicator.gif)
 
 ***
 
-###如果您有PR申请，请提交到dev分支，谢谢-V-（PS:由于我的gif图都放在工程下，所以工程可能比较大，目前好像在70M，给您带来困扰，非常抱歉）
+###如果您有PR申请，请提交到dev分支，谢谢-V-
 
 
 #####关于作者我:
